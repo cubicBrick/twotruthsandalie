@@ -1,0 +1,11 @@
+.contentBox{
+    padding-bottom: 30px;
+    padding-inline: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #eeeeee;
+    border-radius: 0.5cm;
+    border-style: solid;
+    border-width: 1px;
+    margin-inline: auto;
+    max-width: fit-content;
+}
