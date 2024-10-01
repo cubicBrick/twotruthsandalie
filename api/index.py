@@ -100,6 +100,19 @@ def pageHostTruthLies():
 def pageThingsNotToDo():
     if request.method == "GET":
         return render_template("/thingsnottodo/main.html")
+    elif request.method == "POST":
+        thingfile = open("data/thingsnottodo/things.txt", "r")
+        stuff = thingfile.read().split('|||')
+        stuff.reverse()
+        res = []
+        for i in stuff:
+            res.append([i.split('---')[0].replace('\n', ''), i.split('---')[1].replace('\n', '')])
+        return jsonify({"things" : res}), 200
+
+@app.route("/thingsnottodo/suggest", methods=["GET", "POST"])
+def pageThingsNotToDoSuggest():
+    if request.method == "GET":
+        return render_template("/thingsnottodo/suggest.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

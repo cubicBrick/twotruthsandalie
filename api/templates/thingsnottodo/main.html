@@ -5,21 +5,34 @@
     <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="/static/scripts/icon.js"></script>
     <title>My Website!</title>
-    <link rel="stylesheet" href="/static/css/default.css"></link>
-    <link rel="stylesheet" href="/static/css/content.css"></link>
+    <link rel="stylesheet" href="/static/css/default.css">
+    </link>
+    <link rel="stylesheet" href="/static/css/content.css">
+    </link>
     <script src="/static/scripts/warn.js"></script>
 </head>
 
 <body>
-    <header><h1>Some Website</h1></header>
+    <header>
+        <h1>Some Website</h1>
+    </header>
     <nav id="mainnav">
         <a href="/">Home</a>
     </nav>
     <script src="/static/scripts/populatenav.js"></script>
     <h2>Things not to do</h2>
+    <div class="contentBox"><br><br>
+        <form action="/thingsnottodo/suggest">
+            <input type="submit" class="buttona" value="Suggest an Addition" />
+        </form>
+        <br>
+        <form action="/thingsnottodo">
+            <input type="submit" onclick="populate()" class="buttona" value="Refresh" />
+        </form>
+    </div><br>
     <div class="contentBox" id="container">
-        <h2 style="font-family: 'Courier New', Courier, monospace;">Things Not To Do</h2>
-        <table style="font-family: 'Courier New', Courier, monospace;">
+        <br><br>
+        <table style="font-family: 'Courier New', Courier, monospace;" id="main">
             <tr>
                 <td>Number</td>
                 <td>Thing</td>
@@ -33,6 +46,7 @@
                 <td>Drink concentrated hydrogen peroxide</td>
             </tr>
         </table>
+        <script src="/static/scripts/thingsnottodo/main.js"></script>
     </div>
 </body>
 
