@@ -17,13 +17,22 @@
     </nav>
     <script src="/static/scripts/populatenav.js"></script>
     <h2>Your game id: </h2><h2 id="gameid" style="font-family: 'Courier New', Courier, monospace;"></h2>
-    <script src="/static/scripts/truthandlie/gameid.js"></script>
     <div style="text-align: center;" class="contentBox"><br>
         <button onclick="reload()">Reload players</button>   
-        <button onclick="go()">Finish submitting round</button><br><br>
+        <button onclick="finish()">Finish submitting round</button><br><br>
         <button onclick="end()">End game</button>
+        <button onclick="next()" hidden>Move to next</button>
     </div>
-    <script src="/static/scripts/trughandlie/hostmain.js"></script>
+    <br><br>
+    <div class = "contentBox">
+        <table id="players">
+            <tr>
+                <th>Username</th>
+                <th>Submitted?</th>
+            </tr>
+        </table>
+    </div>
+    <script src="/static/scripts/truthandlie/hostmain.js"></script>
 </body>
 
 </html>
