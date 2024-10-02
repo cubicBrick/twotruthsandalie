@@ -9,3 +9,11 @@
     margin-inline: auto;
     max-width: fit-content;
 }
+tr {
+    outline-width: 1px;
+    outline-style: solid;
+}
+td{
+    outline-width: 1px;
+    outline-style: solid;
+}
