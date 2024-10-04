@@ -39,7 +39,7 @@ async function go() {
     const response = await fetch('/twotruthsandalie/join', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({'type':'play',"gameid":gameID,"username":username})
+        body: JSON.stringify({'type':'play',"id":userid,"gameid":gameID,"username":username,"t1":t1,"t2":t2,"l1":l1})
     });
     const data = await response.json();
 }
