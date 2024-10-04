@@ -113,6 +113,20 @@ def pageThingsNotToDo():
 def pageThingsNotToDoSuggest():
     if request.method == "GET":
         return render_template("/thingsnottodo/suggest.html")
+    elif request.method == "POST":
+        data = request.json
+        thing = data.get("sugguestion")
+
+class thingsNotToDoSugguestion:
+    status:"str"
+    thing:"str"  
+
+@app.route("/thingsnottodo/check", methods=["GET", "POST"])
+def pageThingsNotToDoCheck():
+    if request.method == "GET":
+        return render_template("/thingsnottodo/check.html")
+    elif request.method == "POST":
+        pass
 
 if __name__ == "__main__":
     app.run(debug=True)

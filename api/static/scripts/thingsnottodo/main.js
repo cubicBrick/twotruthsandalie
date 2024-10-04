@@ -9,7 +9,7 @@ async function getThings(){
     return things;
 }
 async function populate(){
-    html = "<tr>\n<td>Number</td>\n<td>Thing</td>\n</tr>\n";
+    html = "<tr>\n<td>Number </td>\n<td>Thing</td>\n</tr>\n";
     const things = await getThings();
     for(var i = 0; i < things.length; ++i){
         html += "<tr><td>";

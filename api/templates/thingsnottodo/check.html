@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="/static/scripts/icon.js"></script>
+    <title>My Website!</title>
+    <link rel="stylesheet" href="/static/css/default.css">
+    </link>
+    <link rel="stylesheet" href="/static/css/content.css">
+    </link>
+    <script src="/static/scripts/warn.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Some Website</h1>
+    </header>
+    <nav id="mainnav">
+        <a href="/">Home</a>
+    </nav>
+    <script src="/static/scripts/populatenav.js"></script>
+    <h2>Check your status of your sugguestion!</h2>
+    <form>
+        <label for="id">What is your submission ID?</label>
+        <input type="text" id="id" name="id">
+        <input type="submit">
+    </form>
+    <div id="status" hidden>
+        <h2>Status: </h2>
+        <h2 style="font-family: 'Courier New', Courier, monospace; color: yellow;" id="main">LOADING</h2>
+    </div>
+</body>
+
+</html>
