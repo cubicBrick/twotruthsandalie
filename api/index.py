@@ -78,7 +78,7 @@ def pageTruthsLiesJoin():
             if twotruthsandaliegames[gameid].played[playerid]:
                 return jsonify({'error': "Already played"}), HTTP_FORBIDDEN
             if not twotruthsandaliegames[gameid].submitting:
-                return jsonify({'error', 'Submitting phase closed'}), HTTP_FORBIDDEN
+                return jsonify({'error': 'Submitting phase closed'}), HTTP_FORBIDDEN
             twotruthsandaliegames[gameid].played[playerid] = True
             twotruthsandaliegames[gameid].newPlayer(t1, t2, l1, playerid)
             return jsonify({'good' : "Added truth and lies"}), HTTP_OK
@@ -117,12 +117,21 @@ def pageHostTruthLies():
                 return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
             playerid = data.get("playerid")
             if not playerid == twotruthsandaliegames[gameid].host:
-                return jsonify({"error": "player is not host"}), HTTP_FORBIDDEN
+                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
             res:"list[list[str, bool]]" = []
             for i in twotruthsandaliegames[gameid].players.keys():
                 res.append([twotruthsandaliegames[gameid].players[i],
                             twotruthsandaliegames[gameid].played[i]])
             return jsonify({'players': res}), HTTP_OK
+        elif(data.get("type") == "finish"):
+            gameid = data.get("gameid")
+            if gameid not in twotruthsandaliegames.keys():
+                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
+            playerid = data.get("playerid")
+            if not playerid == twotruthsandaliegames[gameid].host:
+                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
+            twotruthsandaliegames[gameid].submitting = False
+            return jsonify({"good" : "Finished submitting"}), HTTP_OK
             
 
 @app.route("/thingsnottodo", methods=["GET", "POST"])
