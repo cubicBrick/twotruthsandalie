@@ -14,4 +14,4 @@ async function isAuth(){
         nav.innerHTML += "<a href=\"/login\">Login</a>"
     }
 }
-isAuth();
+isAuth(); 
