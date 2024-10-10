@@ -35,6 +35,7 @@ ADMINISTRATOR = 0b1111111111111111
 
 # Logs the data with a timestamp
 def log(data: str, *, file=LOG_FILE) -> None:
+    return
     logs = open(file, "a")
     logs.write(f"[{datetime.now().ctime()}]: {data}\n")
     logs.close()
@@ -55,11 +56,19 @@ class user:
 
 class users:
     userMain: "dict[str, user]" = {}
+    
     def __init__(self, fname: "str" = USER_FILE):
-        file = open(fname, "r")
-        userinfo = file.read().split()
-        for i in userinfo:
-            self.userMain[i.split('-')[0]] = user(int(i.split('-')[1]), i.split('-')[2])
+        try:
+            with open(fname, "r") as file:
+                userinfo = file.read().split()
+                for i in userinfo:
+                    user_data = i.split('-')
+                    if len(user_data) == 3:
+                        self.userMain[user_data[0]] = user(int(user_data[1]), user_data[2])
+        except FileNotFoundError:
+            log(f"File {fname} not found. Creating a new user file.")
+            with open(fname, "w") as file:  # Create an empty file
+                file.write("")  # Write empty content
     def checkUser(self, username : str, password : str) -> tuple[bool, int]:
         if username not in self.userMain.keys():
             return (False, 0)
