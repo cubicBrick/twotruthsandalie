@@ -1,7 +1,10 @@
-1---Drink concentrated hydrogen peroxide.|||
-2---Run into a door.|||
-3---Stab pencils in eyes|||
-4---Be amogh|||
-5---Eat dynamite|||
-6---Eat pencils|||
-7---Answer 7 to every question
+01---Drink concentrated hydrogen peroxide.|||
+02---Run into a door.|||
+03---Stab pencils in eyes|||
+04---Be amogh|||
+05---Eat dynamite|||
+06---Eat pencils|||
+07---Answer 7 to every question (sritan...)|||
+08---Jump out of a window.|||
+09---Stare into a geyser|||
+10---Eat every cold medicine at once
