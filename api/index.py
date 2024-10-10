@@ -67,8 +67,7 @@ class users:
                         self.userMain[user_data[0]] = user(int(user_data[1]), user_data[2])
         except FileNotFoundError:
             log(f"File {fname} not found. Creating a new user file.")
-            with open(fname, "w") as file:  # Create an empty file
-                file.write("")  # Write empty content
+        
     def checkUser(self, username : str, password : str) -> tuple[bool, int]:
         if username not in self.userMain.keys():
             return (False, 0)
