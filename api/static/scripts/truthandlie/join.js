@@ -42,4 +42,10 @@ async function go() {
         body: JSON.stringify({'type':'play',"id":userid,"gameid":gameID,"username":username,"t1":t1,"t2":t2,"l1":l1})
     });
     const data = await response.json();
+    if(!data.good){
+        alert("ERROR Could not submit: " + data.error);
+        return;
+    }
+    document.getElementById("submitted").removeAttribute("hidden");
+    document.getElementById("submitbutton").setAttribute("hidden", "");
 }

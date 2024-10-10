@@ -37,9 +37,17 @@ async function reload(){
     }
     document.getElementById("players").innerHTML = blank;
 }
-function finish(){
-
+async function finish(){
+    await fetch('/twotruthsandalie/host', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({'type':'finish', 'playerid':yourid,'gameid':gameid})
+    })
 }
-function end(){
-
+async function end(){
+    await fetch('/twotruthsandalie/host', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({'type':'end', 'playerid':yourid,'gameid':gameid})
+    })
 }
