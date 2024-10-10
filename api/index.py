@@ -4,13 +4,11 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import random
-from flask_talisman import Talisman
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
-Talisman(app)
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
 
@@ -33,6 +31,7 @@ HTTP_CREATED = 201
 HTTP_SERVER_OVERLOADED = 503
 
 APPROVE_THINGS_NOT_TO_DO_SUGGUEST = 0b0000000000000001
+ADMINISTRATOR = 0b1111111111111111
 
 # Logs the data with a timestamp
 def log(data: str, *, file=LOG_FILE) -> None:
@@ -68,9 +67,15 @@ class users:
 
 main: "users" = users()
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def pageHome():
-    return render_template("./home.html")
+    if request.method == "GET":
+        return render_template("./home.html")
+    elif request.method == "POST":
+        if "user" in session:
+            return jsonify({'result' : "1"}), HTTP_OK
+        else:
+            return jsonify({'result' : "0"}), HTTP_OK
 
 # username: test
 # password: passwordtest!.32
@@ -85,17 +90,20 @@ def pageLogin():
         pwd = data.get("password")
         if main.checkUser(user, pwd)[0]:
             session['user'] = main.checkUser(user, pwd)[1]
-            return jsonify({'good': 'Authenticated'}), 200
+            return jsonify({'good': 'Authenticated'}), HTTP_OK
         else:
-            return jsonify({'error': 'Incorrect username or password'}), 403
+            return jsonify({'error': 'Incorrect username or password'}), HTTP_FORBIDDEN
+
+@app.route("/logout")
+def pageLogout():
+    session.pop("user")
+    return redirect("/")
 
 @app.route("/twotruthsandalie/home")
 def pageTruthsLiesHome():
     return render_template("./truthandlie/main.html")
 
-
 twotruthsandaliegames: "dict[str, truthAndLie]" = {}
-
 
 @app.route("/twotruthsandalie/join", methods=["GET", "POST"])
 def pageTruthsLiesJoin():

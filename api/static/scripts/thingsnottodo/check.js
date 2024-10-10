@@ -26,3 +26,4 @@ async function init() {
         document.getElementById("main").innerHTML = data.status;
     }
 }
+init();
