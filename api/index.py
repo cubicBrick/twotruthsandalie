@@ -4,11 +4,16 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import random
+from flask_talisman import Talisman
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
+Talisman(app)
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
+
 
 IDLELIMIT = timedelta(seconds=60)
 DEFAULTCHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -50,18 +55,18 @@ class user:
         self.pHash = pHash
 
 class users:
-    main: "dict[user]"
+    userMain: "dict[str, user]" = {}
     def __init__(self, fname: "str" = USER_FILE):
         file = open(fname, "r")
-        userinfo = file.read().split('')
+        userinfo = file.read().split()
         for i in userinfo:
-            self.main[i.split('-')[0]] = user(i.split('-')[1], i.split('-')[2])
+            self.userMain[i.split('-')[0]] = user(int(i.split('-')[1]), i.split('-')[2])
+    def checkUser(self, username : str, password : str) -> tuple[bool, int]:
+        if username not in self.userMain.keys():
+            return (False, 0)
+        return (check_password_hash(self.userMain[username].pHash, password), self.userMain[username].pHash)
 
-def checkPwd(username : str, password : str):
-    pwdFile = open(USER_FILE, "r")
-    pwds = pwdFile.read()
-    pwdL = pwds.split('\n')
-    
+main: "users" = users()
 
 @app.route("/")
 def pageHome():
@@ -75,10 +80,14 @@ def pageLogin():
     if request.method == "GET":
         return render_template("/login/login.html")
     else:
-        data = request.data
+        data = request.json
         user = data.get("username")
         pwd = data.get("password")
-
+        if main.checkUser(user, pwd)[0]:
+            session['user'] = main.checkUser(user, pwd)[1]
+            return jsonify({'good': 'Authenticated'}), 200
+        else:
+            return jsonify({'error': 'Incorrect username or password'}), 403
 
 @app.route("/twotruthsandalie/home")
 def pageTruthsLiesHome():
