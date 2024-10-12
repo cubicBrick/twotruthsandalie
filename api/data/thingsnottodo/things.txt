@@ -7,4 +7,5 @@
 07---Jump out of a window.|||
 08---Stare into a geyser|||
 09---Eat every cold medicine at once|||
-10---Stare down into Yellowstone geysers
+10---Stare down into Yellowstone geysers|||
+11---Eat people

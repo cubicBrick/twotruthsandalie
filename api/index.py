@@ -1,23 +1,14 @@
-from flask import Flask, render_template, request, redirect, jsonify, json, session
+from flask import Flask, render_template, request, redirect, jsonify, json, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import random
-
-load_dotenv()
-
-app = Flask(__name__)
-app.secret_key = os.environ["SECRET_KEY"]
-app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
-
-
-IDLELIMIT = timedelta(seconds=60)
-DEFAULTCHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-LOG_FILE = "./.log"
-USER_FILE = "./data/userinfo.txt"
-random.seed(os.urandom(32))
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Date, Integer, String
+from sqlalchemy import *
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_login import LoginManager, UserMixin, login_user, logout_user
 
 HTTP_BAD_REQUEST = 400
 HTTP_UNOUTHORIZED = 401
@@ -33,13 +24,71 @@ HTTP_SERVER_OVERLOADED = 503
 APPROVE_THINGS_NOT_TO_DO_SUGGUEST = 0b0000000000000001
 ADMINISTRATOR = 0b1111111111111111
 
-# Logs the data with a timestamp
-def log(data: str, *, file=LOG_FILE) -> None:
-    return
-    logs = open(file, "a")
-    logs.write(f"[{datetime.now().ctime()}]: {data}\n")
-    logs.close()
+load_dotenv()
 
+app = Flask(__name__)
+app.secret_key = os.environ["SECRET_KEY"]
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
+
+IDLELIMIT = timedelta(seconds=60)
+DEFAULTCHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+LOG_FILE = "./.log"
+USER_FILE = "./data/userinfo.txt"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+random.seed(os.urandom(32))
+
+db = SQLAlchemy(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+class Users(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(250), unique=True,
+                         nullable=False)
+    passwordHash = db.Column(db.String(250),
+                         nullable=False)
+    permissions = db.Column(db.Integer, nullable=False)
+
+with app.app_context():
+    db.create_all()
+
+@login_manager.user_loader
+def loader_user(user_id):
+    return Users.query.get(user_id)
+
+
+@app.route('/register', methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        try:
+            user = Users(username=request.form.get("username"),
+                        passwordHash=generate_password_hash(request.form.get("password")),
+                        permissions=0)
+            db.session.add(user)
+            db.session.commit()
+        except Exception:
+            return jsonify({"error" : "User already registered"}), HTTP_FORBIDDEN
+        return redirect(url_for("login"))
+    return render_template("auth/register.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = Users.query.filter_by(
+            username=request.form.get("username")).first()
+        if check_password_hash(request.form.get("password"), user.passwordHash):
+            login_user(user)
+            return redirect(url_for("home"))
+        
+    return render_template("auth/login.html")
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
 
 def randString(length: int, charset=DEFAULTCHARSET):
     res = ""
@@ -47,65 +96,26 @@ def randString(length: int, charset=DEFAULTCHARSET):
         res += charset[random.randint(0, len(charset) - 1)]
     return res
 
-class user:
-    permissions:"int"
-    pHash: "str"
-    def __init__(self, perms : int, pHash : str):
-        self.permissions = perms
-        self.pHash = pHash
+def log(s : str):
+    pass
 
-class users:
-    userMain: "dict[str, user]" = {}
-    
-    def __init__(self, fname: "str" = USER_FILE):
-        try:
-            with open(fname, "r") as file:
-                userinfo = file.read().split()
-                for i in userinfo:
-                    user_data = i.split('-')
-                    if len(user_data) == 3:
-                        self.userMain[user_data[0]] = user(int(user_data[1]), user_data[2])
-        except FileNotFoundError:
-            log(f"File {fname} not found. Creating a new user file.")
-        
-    def checkUser(self, username : str, password : str) -> tuple[bool, int]:
-        if username not in self.userMain.keys():
-            return (False, 0)
-        return (check_password_hash(self.userMain[username].pHash, password), self.userMain[username].pHash)
-
-main: "users" = users()
+def is_logged_in():
+    try:
+        current_user = get_jwt_identity()
+        return True
+    except Exception:
+        return False
 
 @app.route("/", methods=["GET", "POST"])
 def pageHome():
     if request.method == "GET":
-        return render_template("./home.html")
-    elif request.method == "POST":
-        if "user" in session:
-            return jsonify({'result' : "1"}), HTTP_OK
-        else:
-            return jsonify({'result' : "0"}), HTTP_OK
-
-# username: test
-# password: passwordtest!.32
-
-@app.route("/login", methods=["GET", "POST"])
-def pageLogin():
-    if request.method == "GET":
-        return render_template("/login/login.html")
+        return render_template("home.html")
     else:
-        data = request.json
-        user = data.get("username")
-        pwd = data.get("password")
-        if main.checkUser(user, pwd)[0]:
-            session['user'] = main.checkUser(user, pwd)[1]
-            return jsonify({'good': 'Authenticated'}), HTTP_OK
+        if is_logged_in():
+            return jsonify({"result" : "1"}), 200
         else:
-            return jsonify({'error': 'Incorrect username or password'}), HTTP_FORBIDDEN
-
-@app.route("/logout")
-def pageLogout():
-    session.pop("user")
-    return redirect("/")
+            return jsonify({"result": "0"}), 200
+        
 
 @app.route("/twotruthsandalie/home")
 def pageTruthsLiesHome():
@@ -260,4 +270,4 @@ def pageThingsNotToDoCheck():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

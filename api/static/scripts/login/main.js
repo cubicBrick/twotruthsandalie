@@ -1,5 +1,3 @@
-document.getElementById("submit").addEventListener("click", submit);
-
 async function submit(){
     const response = await fetch('/login', {
         method: 'POST',
