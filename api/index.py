@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import random
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Date, Integer, String
+from sqlalchemy import Column, Date, Integer, String, Row
 from sqlalchemy import *
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from flask_login import LoginManager, UserMixin, login_user, logout_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_remembered, login_required
 
 HTTP_BAD_REQUEST = 400
 HTTP_UNOUTHORIZED = 401
@@ -70,7 +70,7 @@ def register():
             db.session.commit()
         except Exception:
             return jsonify({"error" : "User already registered"}), HTTP_FORBIDDEN
-        return redirect(url_for("login"))
+        return redirect("/login")
     return render_template("auth/register.html")
 
 
@@ -79,16 +79,27 @@ def login():
     if request.method == "POST":
         user = Users.query.filter_by(
             username=request.form.get("username")).first()
-        if check_password_hash(request.form.get("password"), user.passwordHash):
-            login_user(user)
-            return redirect(url_for("home"))
-        
+        if not user:
+            return redirect("/authFailed")
+        if check_password_hash(user.passwordHash, request.form.get("password")):
+            if not login_user(user, remember=True, force=True):
+                return redirect("/authFailed")
+            return redirect("/")
+        return redirect("/authFailed")        
     return render_template("auth/login.html")
 
 @app.route("/logout")
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for("home"))
+    return redirect("/")
+
+@app.route("/authFailed")
+def pageAuthFail():
+    return render_template("/auth/incorrectAuth.html")
+
+def is_logged_in():
+    return current_user.is_authenticated
 
 def randString(length: int, charset=DEFAULTCHARSET):
     res = ""
@@ -98,13 +109,6 @@ def randString(length: int, charset=DEFAULTCHARSET):
 
 def log(s : str):
     pass
-
-def is_logged_in():
-    try:
-        current_user = get_jwt_identity()
-        return True
-    except Exception:
-        return False
 
 @app.route("/", methods=["GET", "POST"])
 def pageHome():
