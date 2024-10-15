@@ -268,6 +268,9 @@ def pageThingsNotToDoCheck():
             HTTP_OK,
         )
 
+@app.route("/Rkpdjp")
+def page_Rkpdjp():
+    return render_template("/games/chromedino/index.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
