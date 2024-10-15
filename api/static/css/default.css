@@ -8,6 +8,11 @@ h2 {
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
 }
+h3{
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
 
 nav {
     display: flex;
@@ -34,6 +39,13 @@ header {
     padding: 20px;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+footer{
+    background-color: #4CAF50;
+    color:white;
+    padding: 20px;
+    text-align: center;
 }
 
 button{

@@ -24,6 +24,9 @@ async function init() {
         }
         document.getElementById("status").removeAttribute("hidden");
         document.getElementById("main").innerHTML = data.status;
+        if (data.status == "ACCEPTED"){
+            document.getElementById("main").setAttribute("style", "font-family: 'Courier New', Courier, monospace; color: green;");
+        }
     }
 }
 init();

@@ -1,14 +1,4 @@
-from flask import Flask, render_template, request, redirect, jsonify, json, session, url_for
-from werkzeug.security import check_password_hash, generate_password_hash
-import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-import random
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Date, Integer, String
-from sqlalchemy import *
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from flask_login import LoginManager, UserMixin, login_user, logout_user
+from imports import *
 
 HTTP_BAD_REQUEST = 400
 HTTP_UNOUTHORIZED = 401
@@ -21,8 +11,12 @@ HTTP_OK = 200
 HTTP_CREATED = 201
 HTTP_SERVER_OVERLOADED = 503
 
+DEFAULT_PERMS                     = 0b0000000000000000
+EDIT_THINGS_NOT_TO_DO_QUEUE       = 0b0000000000000010
 APPROVE_THINGS_NOT_TO_DO_SUGGUEST = 0b0000000000000001
-ADMINISTRATOR = 0b1111111111111111
+ADMINISTRATOR                     = 0b1111111111111111
+THINGS_NOT_TO_DO_ADMINISTRATOR    = EDIT_THINGS_NOT_TO_DO_QUEUE | \
+                                    APPROVE_THINGS_NOT_TO_DO_SUGGUEST
 
 load_dotenv()
 
@@ -45,9 +39,9 @@ login_manager.init_app(app)
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(250), unique=True,
+    username = db.Column(db.String(15), unique=True,
                          nullable=False)
-    passwordHash = db.Column(db.String(250),
+    passwordHash = db.Column(db.String(500),
                          nullable=False)
     permissions = db.Column(db.Integer, nullable=False)
 
@@ -59,36 +53,57 @@ def loader_user(user_id):
     return Users.query.get(user_id)
 
 
+IS_REGSITERING = False
+
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        if not IS_REGSITERING:
+            return jsonify({'error': "Registering is turned off"}), HTTP_FORBIDDEN
         try:
-            user = Users(username=request.form.get("username"),
-                        passwordHash=generate_password_hash(request.form.get("password")),
-                        permissions=0)
+            user = Users(username=request.form.get("username")[:15],
+                        passwordHash=generate_password_hash(request.form.get("password"))[:500],
+                        permissions=DEFAULT_PERMS)
             db.session.add(user)
             db.session.commit()
         except Exception:
             return jsonify({"error" : "User already registered"}), HTTP_FORBIDDEN
-        return redirect(url_for("login"))
+        return redirect("/login")
     return render_template("auth/register.html")
 
+# root
+# Username: abc
+# Password: qoeifurm8f
 
+# user
+# Username: a
+# Password: b
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user = Users.query.filter_by(
             username=request.form.get("username")).first()
-        if check_password_hash(request.form.get("password"), user.passwordHash):
-            login_user(user)
-            return redirect(url_for("home"))
-        
+        if not user:
+            return redirect("/authFailed")
+        if check_password_hash(user.passwordHash, request.form.get("password")):
+            if not login_user(user, remember=True, force=True):
+                return redirect("/authFailed")
+            return redirect("/")
+        return redirect("/authFailed")        
     return render_template("auth/login.html")
 
 @app.route("/logout")
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for("home"))
+    return redirect("/")
+
+@app.route("/authFailed")
+def pageAuthFail():
+    return render_template("/auth/incorrectAuth.html")
+
+def is_logged_in():
+    return current_user.is_authenticated
 
 def randString(length: int, charset=DEFAULTCHARSET):
     res = ""
@@ -99,22 +114,15 @@ def randString(length: int, charset=DEFAULTCHARSET):
 def log(s : str):
     pass
 
-def is_logged_in():
-    try:
-        current_user = get_jwt_identity()
-        return True
-    except Exception:
-        return False
-
 @app.route("/", methods=["GET", "POST"])
 def pageHome():
     if request.method == "GET":
         return render_template("home.html")
     else:
         if is_logged_in():
-            return jsonify({"result" : "1"}), 200
+            return jsonify({"result" : "1"}), HTTP_OK
         else:
-            return jsonify({"result": "0"}), 200
+            return jsonify({"result": "0"}), HTTP_OK
         
 
 @app.route("/twotruthsandalie/home")
@@ -203,8 +211,7 @@ def pageHostTruthLies():
             if not playerid == twotruthsandaliegames[gameid].host:
                 return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
             twotruthsandaliegames[gameid].submitting = False
-            return jsonify({"good" : "Finished submitting"}), HTTP_OK
-            
+            return jsonify({"good" : "Finished submitting"}), HTTP_OK            
 
 @app.route("/thingsnottodo", methods=["GET", "POST"])
 def pageThingsNotToDo():
@@ -222,8 +229,7 @@ def pageThingsNotToDo():
                     i.split("---")[1].replace("\n", ""),
                 ]
             )
-        return jsonify({"things": res}), 200
-
+        return jsonify({"things": res}), HTTP_OK
 
 class thingsNotToDoSugguestion:
     status: "str"
@@ -233,6 +239,7 @@ class thingsNotToDoSugguestion:
     def __init__(self, thing: str, id: str):
         self.status = "WAITING FOR APPROVAL"
         self.thing = thing
+        self.id = id
 
 
 thingsNotToDoSugguestions: "dict[str, thingsNotToDoSugguestion]" = {}
@@ -244,9 +251,11 @@ def pageThingsNotToDoSuggest():
         return render_template("/thingsnottodo/suggest.html")
     elif request.method == "POST":
         data = request.json
-        thing = data.get("sugguestion")
+        thing = data.get("sugguestion")[:60]
         if len(thingsNotToDoSugguestions.keys()) > 500:
             return jsonify({"error": "Too many requests"}), HTTP_SERVER_OVERLOADED
+        if len(thing) == 0:
+            return jsonify({"error" : "No submission"}), HTTP_BAD_REQUEST
         id = randString(16)
         thingsNotToDoSugguestions[id] = thingsNotToDoSugguestion(thing, id)
         return jsonify({"good": "Sugguestion added", "id": id}), HTTP_CREATED
@@ -268,9 +277,57 @@ def pageThingsNotToDoCheck():
             HTTP_OK,
         )
 
-@app.route("/Rkpdjp")
-def page_Rkpdjp():
-    return render_template("/games/chromedino/index.html")
+@app.route("/thingsnottodo/verify", methods=["GET", "POST"])
+@login_required
+def pageThingsNotToDoVerify():
+    global thingsNotToDoSugguestions
+    if request.method == "GET":
+        if not (current_user.permissions & APPROVE_THINGS_NOT_TO_DO_SUGGUEST):
+            return redirect("/login")
+        return render_template("/thingsnottodo/verify.html")
+    elif request.method == "POST":
+        data = request.json
+        if not (current_user.permissions & APPROVE_THINGS_NOT_TO_DO_SUGGUEST):
+            return jsonify({"error": "Forbidden"}), HTTP_FORBIDDEN
+        if data.get("type") == "get":
+            if len(thingsNotToDoSugguestions.keys()) == 0:
+                return jsonify({"error": "No sugguestions"}), HTTP_NOT_FOUND
+            keyListD = thingsNotToDoSugguestions.keys()
+            keyList = []
+            for i in keyListD:
+                keyList.append(i)
+            sid = keyList[random.randint(0, len(keyList) - 1)]
+            return jsonify({"id" : thingsNotToDoSugguestions[sid].id, "content": thingsNotToDoSugguestions[sid].thing})
+        elif data.get("type") == "accept":
+            subid = data.get("id")
+            if subid not in thingsNotToDoSugguestions.keys():
+                return jsonify({"error" : "ID not found"}), HTTP_NOT_FOUND
+            thingsNotToDoSugguestions[subid].status = "ACCEPTED"
+            things = open("./data/thingsnottodo/things.txt", "a")
+            things.write("|||\n")
+            thingsr = open("./data/thingsnottodo/things.txt", "r")
+            stuff = thingsr.read().split("|||")
+            things.write(str(len(stuff) + 1) + "---" + thingsNotToDoSugguestions[subid].thing)
+            return jsonify({"good" : "Added sugguestion"}), HTTP_CREATED
+        elif data.get("type") == "deny":
+            subid = data.get("id")
+            if subid not in thingsNotToDoSugguestions.keys():
+                return jsonify({"error" : "ID not found"}), HTTP_NOT_FOUND
+            thingsNotToDoSugguestions[subid].status = "DENIED"
+            return jsonify({"good" : "Denied request"}), HTTP_OK
+        elif data.get("type") == "fullclear":
+            if not (current_user.permissions & THINGS_NOT_TO_DO_ADMINISTRATOR):
+                return jsonify({"error": "You do not have permissions to do this action!"}), HTTP_FORBIDDEN
+            thingsNotToDoSugguestions.clear()
+            return jsonify({'good' : 'teapot'}), 418
+        elif data.get("type") == "softclear":
+            if not (current_user.permissions & THINGS_NOT_TO_DO_ADMINISTRATOR):
+                return jsonify({"error": "You do not have permissions to do this action!"}), HTTP_FORBIDDEN
+            newt : "dict[str, thingsNotToDoSugguestion]" = {}
+            for i in thingsNotToDoSugguestions.keys():
+                if thingsNotToDoSugguestions[i].status == "WAITING FOR APPROVAL":
+                    newt[i] = thingsNotToDoSugguestions[i]
+            thingsNotToDoSugguestions = newt
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
