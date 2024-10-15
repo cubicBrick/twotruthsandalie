@@ -15,4 +15,5 @@
 15---Hike Mt. Everest without any jackets|||
 16---Attempt to eat a plane|||
 17---Give your friend dry ice and tell them it is normal ice|||
-18---Don't suggest anything else
+18---Don't suggest anything else|||
+19---Be stupid

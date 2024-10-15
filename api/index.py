@@ -348,5 +348,8 @@ def pageThingsNotToDoVerify():
 def D2L3A210N3iALY0n():
     return render_template("/games/chromedino/index.html")
 
+@app.route("/gmW5lUWRqr0PgVfb")
+def gmW5lUWRqr0PgVfb():
+    return render_template("/games/2048/index.html")
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
