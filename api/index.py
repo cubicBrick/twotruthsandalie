@@ -12,11 +12,12 @@ HTTP_CREATED = 201
 HTTP_SERVER_OVERLOADED = 503
 
 DEFAULT_PERMS                     = 0b0000000000000000
-EDIT_THINGS_NOT_TO_DO_QUEUE       = 0b0000000000000010
 APPROVE_THINGS_NOT_TO_DO_SUGGUEST = 0b0000000000000001
+EDIT_THINGS_NOT_TO_DO_QUEUE       = 0b0000000000000010
 ADMINISTRATOR                     = 0b1111111111111111
 THINGS_NOT_TO_DO_ADMINISTRATOR    = EDIT_THINGS_NOT_TO_DO_QUEUE | \
-                                    APPROVE_THINGS_NOT_TO_DO_SUGGUEST
+                                    APPROVE_THINGS_NOT_TO_DO_SUGGUEST | \
+                                    0b0000000000000100
 
 load_dotenv()
 
@@ -235,11 +236,13 @@ class thingsNotToDoSugguestion:
     status: "str"
     thing: "str"
     id: "str"
+    ac: "int"
 
     def __init__(self, thing: str, id: str):
         self.status = "WAITING FOR APPROVAL"
         self.thing = thing
         self.id = id
+        self.ac = 0
 
 
 thingsNotToDoSugguestions: "dict[str, thingsNotToDoSugguestion]" = {}
@@ -297,37 +300,53 @@ def pageThingsNotToDoVerify():
             for i in keyListD:
                 keyList.append(i)
             sid = keyList[random.randint(0, len(keyList) - 1)]
-            return jsonify({"id" : thingsNotToDoSugguestions[sid].id, "content": thingsNotToDoSugguestions[sid].thing})
+            return jsonify({"current": thingsNotToDoSugguestions[sid].status, "id" : thingsNotToDoSugguestions[sid].id, "content": thingsNotToDoSugguestions[sid].thing})
         elif data.get("type") == "accept":
             subid = data.get("id")
             if subid not in thingsNotToDoSugguestions.keys():
                 return jsonify({"error" : "ID not found"}), HTTP_NOT_FOUND
             thingsNotToDoSugguestions[subid].status = "ACCEPTED"
-            things = open("./data/thingsnottodo/things.txt", "a")
-            things.write("|||\n")
-            thingsr = open("./data/thingsnottodo/things.txt", "r")
-            stuff = thingsr.read().split("|||")
-            things.write(str(len(stuff) + 1) + "---" + thingsNotToDoSugguestions[subid].thing)
-            return jsonify({"good" : "Added sugguestion"}), HTTP_CREATED
+            thingsNotToDoSugguestions[subid].ac = 1
+            return jsonify({"good" : "Queued to update"}), HTTP_CREATED
         elif data.get("type") == "deny":
             subid = data.get("id")
             if subid not in thingsNotToDoSugguestions.keys():
                 return jsonify({"error" : "ID not found"}), HTTP_NOT_FOUND
             thingsNotToDoSugguestions[subid].status = "DENIED"
+            thingsNotToDoSugguestions[subid].ac = -1
             return jsonify({"good" : "Denied request"}), HTTP_OK
         elif data.get("type") == "fullclear":
             if not (current_user.permissions & THINGS_NOT_TO_DO_ADMINISTRATOR):
                 return jsonify({"error": "You do not have permissions to do this action!"}), HTTP_FORBIDDEN
-            thingsNotToDoSugguestions.clear()
+            things = open("./data/thingsnottodo/things.txt", "a")
+            tfLen = 0
+            with open("./data/thingsnottodo/things.txt", "r") as f:
+                tfLen = len(f.read().split("|||"))
+            for i in thingsNotToDoSugguestions.keys():
+                if thingsNotToDoSugguestions[i].ac == 1:
+                    things.write("|||\n" + str(tfLen) + "---" + thingsNotToDoSugguestions[i].thing)
+                    tfLen += 1
             return jsonify({'good' : 'teapot'}), 418
         elif data.get("type") == "softclear":
-            if not (current_user.permissions & THINGS_NOT_TO_DO_ADMINISTRATOR):
+            if not (current_user.permissions & EDIT_THINGS_NOT_TO_DO_QUEUE):
                 return jsonify({"error": "You do not have permissions to do this action!"}), HTTP_FORBIDDEN
             newt : "dict[str, thingsNotToDoSugguestion]" = {}
+            things = open("./data/thingsnottodo/things.txt", "a")
+            tfLen = 0
+            with open("./data/thingsnottodo/things.txt", "r") as f:
+                tfLen = len(f.read().split("|||")) + 1
             for i in thingsNotToDoSugguestions.keys():
-                if thingsNotToDoSugguestions[i].status == "WAITING FOR APPROVAL":
+                if thingsNotToDoSugguestions[i].ac == 1:
+                    things.write("|||\n" + str(tfLen) + "---" + thingsNotToDoSugguestions[i].thing)
+                    tfLen += 1
+                elif thingsNotToDoSugguestions[i].ac == 0:
                     newt[i] = thingsNotToDoSugguestions[i]
             thingsNotToDoSugguestions = newt
+            return jsonify({'good': 'added all checked sugguestions'}), 201
+
+@app.route("/D2L3A210N3iALY0n")
+def D2L3A210N3iALY0n():
+    return render_template("/games/chromedino/index.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
