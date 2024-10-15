@@ -3,7 +3,7 @@ async function go(){
     const response = await fetch('/thingsnottodo/suggest', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({"sugguestion":sugguestion})
+        body: JSON.stringify({"sugguestion" : sugguestion})
     });
     const data = await response.json();
     if(data.error){
