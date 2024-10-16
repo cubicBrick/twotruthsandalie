@@ -1,3 +1,7 @@
 Flask
 python-dotenv
 waitress
+SQLAlchemy
+Flask-SQLAlchemy
+Flask-Login
+Flask-JWT-Extended
