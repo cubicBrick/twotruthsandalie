@@ -305,7 +305,7 @@ def pageThingsNotToDoVerify():
             for i in keyListD:
                 keyList.append(i)
             sid = keyList[random.randint(0, len(keyList) - 1)]
-            return jsonify({"current": thingsNotToDoSugguestions[sid].status, "id" : thingsNotToDoSugguestions[sid].id, "content": thingsNotToDoSugguestions[sid].thing})
+            return jsonify({"status": thingsNotToDoSugguestions[sid].status, "id" : thingsNotToDoSugguestions[sid].id, "content": thingsNotToDoSugguestions[sid].thing})
         elif data.get("type") == "accept":
             subid = data.get("id")
             if subid not in thingsNotToDoSugguestions.keys():
@@ -358,6 +358,11 @@ def D2L3A210N3iALY0n():
 @login_required
 def gmW5lUWRqr0PgVfb():
     return render_template("/games/2048/index.html")
+
+@app.route("/ZaLjhjg4TngXcGQX")
+@login_required
+def ZaLjhjg4TngXcGQX():
+    return render_template("/games/retro-bowl/index.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
