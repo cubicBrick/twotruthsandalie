@@ -16,4 +16,5 @@
 16---Attempt to eat a plane|||
 17---Give your friend dry ice and tell them it is normal ice|||
 18---Don't suggest anything else|||
-19---Be stupid
+19---Be stupid|||
+20---Eat onions raw
