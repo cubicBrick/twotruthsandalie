@@ -129,7 +129,13 @@ def pageHome():
             return jsonify({"result" : "1"}), HTTP_OK
         else:
             return jsonify({"result": "0"}), HTTP_OK
-        
+
+
+######################################
+#       ^^^ Authentication ^^^       #
+#    vvv Two Truths and a Lie vvv    #
+######################################
+
 
 @app.route("/twotruthsandalie/home")
 def pageTruthsLiesHome():
@@ -218,6 +224,13 @@ def pageHostTruthLies():
                 return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
             twotruthsandaliegames[gameid].submitting = False
             return jsonify({"good" : "Finished submitting"}), HTTP_OK            
+
+
+
+######################################
+#    ^^^ Two truths and a lie ^^^    #
+#      vvv Things not to do vvv      #
+######################################
 
 @app.route("/thingsnottodo", methods=["GET", "POST"])
 def pageThingsNotToDo():
@@ -343,15 +356,6 @@ def pageThingsNotToDoVerify():
             return jsonify({'good': 'added all checked sugguestions'}), HTTP_CREATED
         return jsonify({'error' : 'bad request'}), HTTP_BAD_REQUEST
 
-@app.route("/D2L3A210N3iALY0n")
-@login_required
-def D2L3A210N3iALY0n():
-    return render_template("/games/chromedino/index.html")
-
-@app.route("/gmW5lUWRqr0PgVfb")
-@login_required
-def gmW5lUWRqr0PgVfb():
-    return render_template("/games/2048/index.html")
 
 @app.route("/ZaLjhjg4TngXcGQX")
 @login_required
