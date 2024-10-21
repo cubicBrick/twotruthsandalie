@@ -16,8 +16,7 @@ async function getNew(){
     document.getElementById("deny").removeAttribute("hidden");
     document.getElementById("softclear").removeAttribute("hidden");
     document.getElementById("fullclear").removeAttribute("hidden");
-    document.getElementById("status").removeAttribute("hidden");
-    document.getElementById("main").innerHTML = data.status;
+    document.getElementById("status").innerHTML = data.status;
     if (data.status == "ACCEPTED"){
         document.getElementById("main").setAttribute("style", "font-family: 'Courier New', Courier, monospace; color: green;");
     }

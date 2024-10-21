@@ -323,14 +323,7 @@ def pageThingsNotToDoVerify():
         elif data.get("type") == "fullclear":
             if not (current_user.permissions & THINGS_NOT_TO_DO_ADMINISTRATOR):
                 return jsonify({"error": "You do not have permissions to do this action!"}), HTTP_FORBIDDEN
-            things = open("./data/thingsnottodo/things.txt", "a")
-            tfLen = 0
-            with open("./data/thingsnottodo/things.txt", "r") as f:
-                tfLen = len(f.read().split("|||"))
-            for i in thingsNotToDoSugguestions.keys():
-                if thingsNotToDoSugguestions[i].ac == 1:
-                    things.write("|||\n" + str(tfLen) + "---" + thingsNotToDoSugguestions[i].thing)
-                    tfLen += 1
+            thingsNotToDoSugguestions.clear()
             return jsonify({'good' : 'teapot'}), 418
         elif data.get("type") == "softclear":
             if not (current_user.permissions & EDIT_THINGS_NOT_TO_DO_QUEUE):
@@ -347,7 +340,8 @@ def pageThingsNotToDoVerify():
                 elif thingsNotToDoSugguestions[i].ac == 0:
                     newt[i] = thingsNotToDoSugguestions[i]
             thingsNotToDoSugguestions = newt
-            return jsonify({'good': 'added all checked sugguestions'}), 201
+            return jsonify({'good': 'added all checked sugguestions'}), HTTP_CREATED
+        return jsonify({'error' : 'bad request'}), HTTP_BAD_REQUEST
 
 @app.route("/D2L3A210N3iALY0n")
 @login_required
