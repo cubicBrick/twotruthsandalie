@@ -346,10 +346,6 @@ def pageThingsNotToDoVerify():
         return jsonify({'error' : 'bad request'}), HTTP_BAD_REQUEST
 
 
-@app.route("/ZaLjhjg4TngXcGQX")
-@login_required
-def ZaLjhjg4TngXcGQX():
-    return render_template("/games/retro-bowl/index.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
