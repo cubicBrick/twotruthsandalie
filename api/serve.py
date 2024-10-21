@@ -1,4 +1,4 @@
 import index
 from waitress import serve
 
-serve(index.app, host="0.0.0.0", port="5000")
+serve(index.app, port="5000")

@@ -14,7 +14,6 @@ HTTP_SERVER_OVERLOADED = 503
 DEFAULT_PERMS                     = 0b0000000000000000
 APPROVE_THINGS_NOT_TO_DO_SUGGUEST = 0b0000000000000001
 EDIT_THINGS_NOT_TO_DO_QUEUE       = 0b0000000000000010
-VIEW_RESTRICTED                   = 0b0000000000001000
 ADMINISTRATOR                     = 0b1111111111111111
 THINGS_NOT_TO_DO_ADMINISTRATOR    = EDIT_THINGS_NOT_TO_DO_QUEUE | \
                                     APPROVE_THINGS_NOT_TO_DO_SUGGUEST | \
@@ -69,21 +68,11 @@ def register():
             db.session.add(user)
             db.session.commit()
         except Exception:
-            return jsonify({"error" : "User already registered"}), HTTP_FORBIDDEN
+            return jsonify({"error" : "User already registered! Choose another username"}), HTTP_FORBIDDEN
+        return redirect("/login")
+    if(is_logged_in()):
         return redirect("/login")
     return render_template("auth/register.html")
-
-# root
-# Username: abc
-# Password: qoeifurm8f
-
-# user
-# Username: a
-# Password: b
-
-# power view
-# usernaem: view
-# password: t.hepowerofgames3
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
