@@ -4,3 +4,6 @@
 *.cnf
 *.exe
 userinfo.md
+*.pyc
+__pycache__/*
+__pycache
