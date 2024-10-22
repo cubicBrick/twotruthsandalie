@@ -1,5 +1,7 @@
 from imports import *
 
+LOGIN_EXPIRE = timedelta(hours=12)
+
 HTTP_BAD_REQUEST = 400
 HTTP_UNOUTHORIZED = 401
 HTTP_FORBIDDEN = 403
@@ -40,9 +42,9 @@ login_manager.init_app(app)
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(15), unique=True,
+    username = db.Column(db.String(20), unique=True,
                          nullable=False)
-    passwordHash = db.Column(db.String(500),
+    passwordHash = db.Column(db.String(505),
                          nullable=False)
     permissions = db.Column(db.Integer, nullable=False)
 
@@ -73,6 +75,7 @@ def register():
     if(is_logged_in()):
         return redirect("/login")
     return render_template("auth/register.html")
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -81,10 +84,10 @@ def login():
         if not user:
             return redirect("/authFailed")
         if check_password_hash(user.passwordHash, request.form.get("password")):
-            if not login_user(user, remember=True, force=True):
-                return redirect("/authFailed")
+            if not login_user(user, remember=True, force=True, duration=LOGIN_EXPIRE):
+                return redirect("/static/authFailed.html")
             return redirect("/")
-        return redirect("/authFailed")        
+        return redirect("/static/authFailed.html")        
     return render_template("auth/login.html")
 
 @app.route("/logout")
@@ -92,10 +95,6 @@ def login():
 def logout():
     logout_user()
     return redirect("/")
-
-@app.route("/authFailed")
-def pageAuthFail():
-    return render_template("/auth/incorrectAuth.html")
 
 def is_logged_in():
     return current_user.is_authenticated
@@ -213,8 +212,6 @@ def pageHostTruthLies():
                 return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
             twotruthsandaliegames[gameid].submitting = False
             return jsonify({"good" : "Finished submitting"}), HTTP_OK            
-
-
 
 ######################################
 #    ^^^ Two truths and a lie ^^^    #
@@ -345,7 +342,10 @@ def pageThingsNotToDoVerify():
             return jsonify({'good': 'added all checked sugguestions'}), HTTP_CREATED
         return jsonify({'error' : 'bad request'}), HTTP_BAD_REQUEST
 
-
+######################################
+#      ^^^ Things not to do ^^^      #
+#         vvv Activation vvv         #
+######################################
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
