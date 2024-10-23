@@ -344,7 +344,6 @@ def pageThingsNotToDoVerify():
 
 ######################################
 #      ^^^ Things not to do ^^^      #
-#         vvv Activation vvv         #
 ######################################
 
 if __name__ == "__main__":
