@@ -211,7 +211,15 @@ def pageHostTruthLies():
             if not playerid == twotruthsandaliegames[gameid].host:
                 return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
             twotruthsandaliegames[gameid].submitting = False
-            return jsonify({"good" : "Finished submitting"}), HTTP_OK            
+            return jsonify({"good" : "Finished submitting"}), HTTP_OK  
+        elif(data.get("type") == "end"):
+            gameid = data.get("gameid")
+            if gameid not in twotruthsandaliegames.keys():
+                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
+            playerid = data.get("playerid")
+            if not playerid == twotruthsandaliegames[gameid].host:
+                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
+                    
 
 ######################################
 #    ^^^ Two truths and a lie ^^^    #
@@ -344,6 +352,7 @@ def pageThingsNotToDoVerify():
 
 ######################################
 #      ^^^ Things not to do ^^^      #
+#               vvvvvv               #
 ######################################
 
 if __name__ == "__main__":
