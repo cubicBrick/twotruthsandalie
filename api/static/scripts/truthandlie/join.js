@@ -43,9 +43,36 @@ async function go() {
     });
     const data = await response.json();
     if(!data.good){
-        alert("ERROR Could not submit: " + data.error);
+        alert("ERROR! Could not submit: " + data.error);
         return;
     }
     document.getElementById("submitted").removeAttribute("hidden");
     document.getElementById("submitbutton").setAttribute("hidden", "");
 }
+async function getCurrent(){
+    const response = await fetch('/twotruthsandalie/join', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({'type':'get',"id":userid,"gameid":gameID})
+    }); 
+}
+async function reload(){
+    const response = await fetch('/twotruthsandalie/join',{
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({'type': 'refresh', 'gameid' : gameID, 'id' : userid})
+    })
+    const data = await response.json();
+    if(!data.good){
+        alert("ERROR! Could not fetch data from the server: " + data.error);
+        return;
+    }
+    if(data.phase == "guessing"){
+        document.getElementById("enter").setAttribute("hidden", "");
+        document.getElementById("guess").removeAttribute("hidden");
+    }
+    else if(data.phase == ""){
+        
+    }
+}
+setInterval(reload, 500)

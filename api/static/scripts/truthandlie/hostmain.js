@@ -31,13 +31,15 @@ async function reload(){
     })
     const data = await response.json();
     console.log(data.players);
-    var blank = "<tr><th>Username</th><th>Submitted?</th></tr>"
+    var blank = "<tr><th>Username</th><th>Submitted?</th><th>Score</th></tr>"
     for(var i = 0; i < data.players.length; ++i){
-        blank += "<tr><th>" + data.players[i][0] + "</th><th>" + data.players[i][1] + "</th></tr>";
+        blank += "<tr><th>" + data.players[i][0] + "</th><th>" + data.players[i][1] + "</th><th>" + data.players[i][2] + "</th></tr>";
     }
     document.getElementById("players").innerHTML = blank;
 }
+setInterval(reload, 1000);
 async function finish(){
+    document.getElementById("phase").innerHTML = "Curent Phase: Checking"
     await fetch('/twotruthsandalie/host', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -45,6 +47,7 @@ async function finish(){
     })
 }
 async function end(){
+    document.getElementById("phase").innerHTML = "Curent Phase: Done"
     await fetch('/twotruthsandalie/host', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
