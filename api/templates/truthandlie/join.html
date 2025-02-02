@@ -19,7 +19,7 @@
     </nav>
     <script src="/static/scripts/populatenav.js"></script>
     <script src="/static/scripts/warn.js"></script>
-    <h2 id = "title">Join Game</h2>
+    <h2 id="title">Join Game</h2>
     <div id="join" class="contentBox">
         <br>
         <br>
@@ -38,6 +38,17 @@
         <input type="text" id="t2" name="t2"><br><br>
         <input id="submitbutton" onclick="go()" type="submit">
         <h2 id="submitted" hidden>Submitted!</h2>
+    </div>
+    <div class="contentBox" id="guess" hidden><br>
+        <div>
+        <input type="radio" id="option1" name="selectbox" value="1">
+        <label for="option1" id="label_option1"></label><br>
+        <input type="radio" id="option2" name="selectbox" value="2">
+        <label for="option2" id="label_option2"></label><br>
+        <input type="radio" id="option1" name="selectbox" value="3">
+        <label for="option1" id="label_option3"></label><br><br>
+        <input id="submitGuess" onclick="guessSubmit()" type="submit">
+        </div>
     </div>
     <script src="/static/scripts/truthandlie/join.js"></script>
 </body>
