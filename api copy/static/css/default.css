@@ -1,0 +1,91 @@
+h1 {
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+h2 {
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+h3{
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    background-color: #89d88b;
+    padding: 10px 0;
+}
+
+nav a {
+    color: white;
+    padding: 14px 20px;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+}
+
+nav a:hover {
+    background-color: #4CAF50;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+footer{
+    background-color: #4CAF50;
+    color:white;
+    padding: 20px;
+    text-align: center;
+}
+
+button{
+    background-color: rgb(131, 131, 255);
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+button:hover{
+    background-color: rgb(80, 80, 255);
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+
+.buttona{
+    background-color: rgb(131, 131, 255);
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+.buttona:hover{
+    background-color: rgb(80, 80, 255);
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+.center{
+    display: inline-block;
+    text-align: center;
+    margin-inline: auto;
+}
+
+form{
+    border-radius: 0.5cm;
+    border-width: 1px;
+}
+
+input{
+    border-radius: 0.2cm;
+    border-width: 1px;
+    background-color: #eeeeee;
+    font-size: x-large;
+}
