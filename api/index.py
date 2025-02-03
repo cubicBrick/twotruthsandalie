@@ -192,10 +192,26 @@ def pageTruthsLiesJoin():
                     "phase": (
                         "submitting"
                         if twotruthsandaliegames[data.get("gameid")].submitting
-                        else ("done" if twotruthsandaliegames[data.get("gameid")].done else "guessing")
+                        else ("done" if twotruthsandaliegames[data.get("gameid")].done else ("guessing" + str(len(twotruthsandaliegames[data.get("gameid")].order))))
                     ),
                 }
             ), HTTP_OK
+        elif data.get("type") == "get":
+            if data.get("gameid") not in twotruthsandaliegames.keys():
+                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
+            if (
+                data.get("id")
+                not in twotruthsandaliegames[data.get("gameid")].players.keys()
+            ):
+                return jsonify({"error": "Player not found"}), HTTP_NOT_FOUND
+            if (twotruthsandaliegames[data.get("gameid")].submitting) or twotruthsandaliegames[data.get("gameid")].done:
+                return jsonify({"error": "Not in correct phase"}), HTTP_NOT_ACCEPTABLE
+            tandl = twotruthsandaliegames[data.get("gameid")].tandl
+            order = twotruthsandaliegames[data.get("gameid")].order[0]
+            g0 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[0]]
+            g1 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[1]]
+            g2 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[2]]
+            return jsonify({'good': 'Fetched data', 'g0':g0, 'g1': g1, '2g':g2})
 
     return render_template("/truthandlie/join.html")
 
@@ -206,6 +222,8 @@ class truthAndLie:
     tandl: "dict[str, tuple[str, str, str]]" = {}
     score: "dict[str, int]" = {}
     order: "list[str]"= []
+    rorder: "list[int]" = [0, 1, 2]
+    liepos: "int" = 0
     host: "str" = ""
     submitting = True
     done = False
@@ -224,6 +242,13 @@ class truthAndLie:
         if len(self.order) <= 1:
             return False
         self.order = self.order[1:]
+        random.shuffle(self.order)
+        if self.order[0] == 0:
+            self.liepos = 0
+        elif self.order[1] == 0:
+            self.liepos = 1
+        elif self.order[2] == 0:
+            self.liepos = 2
         return True
 
 
