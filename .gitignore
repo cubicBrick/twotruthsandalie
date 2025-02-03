@@ -8,3 +8,5 @@ userinfo.md
 *.cpython-312.pyc
 __pycache__/*
 __pycache
+imports.cpython-312.pyc
+index.cpython-312.pyc
