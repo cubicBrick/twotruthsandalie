@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="/static/scripts/icon.js"></script>
+    <title>My Website!</title>
+    <link rel="stylesheet" href="/static/css/default.css"></link>
+    <link rel="stylesheet" href="/static/css/content.css"></link>
+
+</head>
+
+<body>
+    <header><h1>Some Website</h1></header>
+    <nav id="mainnav">
+        <a href="/">Home</a>
+    </nav>
+    <script src="/static/scripts/populatenav.js"></script>
+    <h2 id="title">Enter your truths and lies!</h2>
+    <div id="enter" hidden>
+        <form method="POST" onkeydown="return event.key != 'Enter';">
+            <label for="l1">Your lie:</label>
+            <input type="text" id="l1" name="l1"><br><br>
+        </form>
+    </div>
+    <div id="check" hidden>
+        
+    </div>
+</body>
+
+</html>

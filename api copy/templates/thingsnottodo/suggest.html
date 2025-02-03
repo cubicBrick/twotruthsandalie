@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="/static/scripts/icon.js"></script>
+    <title>My Website!</title>
+    <link rel="stylesheet" href="/static/css/default.css">
+    </link>
+    <link rel="stylesheet" href="/static/css/content.css">
+    </link>
+    <script src="/static/scripts/warn.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Some Website</h1>
+    </header>
+    <nav id="mainnav">
+        <a href="/">Home</a>
+    </nav>
+    <script src="/static/scripts/populatenav.js"></script>
+    <h2>Suggest a new thing not to do!</h2>
+    <div class="contentBox">
+        <br><br>
+            <label for="id">What is your suggestion?</label>
+            <input type="text" id="id" name="id" required maxlength="60"><br><br>
+            <button onclick="go()">Submit</button>
+    </div>
+    <script src="/static/scripts/thingsnottodo/suggust.js"></script>
+    <h2 id="idview" style="font-family: 'Courier New', Courier, monospace;"></h2>
+    <div style="text-align: center;">
+    <a style="font-family: Arial, Helvetica, sans-serif; text-align: center; size: 24px;" id="view" hidden>View it here</a>
+    </div>
+</body>
+
+</html>

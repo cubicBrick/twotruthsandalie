@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="/static/scripts/icon.js"></script>
+    <title>My Website!</title>
+    <link rel="stylesheet" href="/static/css/default.css">
+    </link>
+    <link rel="stylesheet" href="/static/css/content.css">
+    </link>
+    <script src="/static/scripts/warn.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Some Website</h1>
+    </header>
+    <nav id="mainnav">
+        <a href="/">Home</a>
+    </nav>
+    <script src="/static/scripts/populatenav.js"></script>
+    <h2>Verify sugguestions!</h2>
+    <div class="contentBox" style="text-align: center;"><br><br>
+        <h3>Current status: </h3><h3 id="status"></h3>
+        <h3>Current Sugguestion: </h3><h3 id="main"></h3>
+        <button id="verify" onclick="accept()" hidden>Accept</button><button id="deny" onclick="deny()" hidden>Deny</button><br>
+        <button id="softclear" onclick="softclear()" hidden>Clear checked things from the queue</button><br><br>
+        <button style="background-color: red;" id="fullclear" onclick="hardclear()" hidden>Clear ALL things from the queue (DANGER)</button>
+        <script src="/static/scripts/thingsnottodo/verify.js"></script>
+    </div>
+    <footer>We are not responsible for this content.</footer>
+</body>
+
+</html>

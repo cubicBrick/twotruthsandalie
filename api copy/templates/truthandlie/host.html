@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link id="icon" rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="/static/scripts/icon.js"></script>
+    <title>My Website!</title>
+    <link rel="stylesheet" href="/static/css/default.css"></link>
+    <link rel="stylesheet" href="/static/css/content.css"></link>
+    <script src="/static/scripts/warn.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+
+<body>
+    <header><h1>Some Website</h1></header>
+    <nav id="mainnav">
+        <a href="/">Home</a>
+    </nav>
+    <script src="/static/scripts/populatenav.js"></script>
+    <h2>Your game id: </h2><h2 id="gameid" style="font-family: 'Courier New', Courier, monospace;"></h2>
+    <div style="text-align: center;" class="contentBox"><br>
+        <h2 style="text-align: center;">Control Panel</h2>
+        <h2 style = "text-align: center;" id="phase">Current Phase: Submitting</h2>
+        <button onclick="reload()">Reload players</button>   
+        <button onclick="finish()">Finish submitting round</button><br><br>
+        <button onclick="end()">End game</button>
+        <button onclick="next()" hidden>Move to next person</button>
+    </div>
+    <br><br>
+    <div class = "contentBox"><br><br>
+        <table id="players">
+            <tr>
+                <th>Username</th>
+                <th>Submitted?</th>
+                <th>Points</th>
+            </tr>
+        </table>
+    </div>
+    <script src="/static/scripts/truthandlie/hostmain.js"></script>
+</body>
+
+</html>

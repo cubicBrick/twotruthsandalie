@@ -28,7 +28,7 @@ app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
 app.config["SESSION_COOKIE_SECURE"] = True  # Only send cookies over HTTPS
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access to cookies
-
+socketio = SocketIO(app)
 IDLELIMIT = timedelta(seconds=60)
 DEFAULTCHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 LOG_FILE = "./.log"
@@ -142,168 +142,173 @@ def pageHome():
 def pageTruthsLiesHome():
     return render_template("./truthandlie/main.html")
 
-
 twotruthsandaliegames: "dict[str, truthAndLie]" = {}
 
-
-@app.route("/twotruthsandalie/join", methods=["GET", "POST"])
-def pageTruthsLiesJoin():
-    if request.method == "POST":
-        data = request.json
-        if data.get("type") == "join":
-            gameid = data.get("gameid")
-            username = data.get("username")
-            log(f"Attempted to join game with id [{gameid}], username [{username}].")
-            if gameid not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            playerid = randString(32)
-            twotruthsandaliegames[gameid].players[playerid] = username
-            twotruthsandaliegames[gameid].played[playerid] = False
-            twotruthsandaliegames[gameid].score[playerid] = 0
-            return jsonify({"good": "Game found", "userid": playerid}), HTTP_CREATED
-        elif data.get("type") == "play":
-            t1 = data.get("t1")
-            t2 = data.get("t2")
-            l1 = data.get("l1")
-            playerid = data.get("id")
-            gameid = data.get("gameid")
-            if gameid not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            if playerid not in twotruthsandaliegames[gameid].players.keys():
-                return jsonify({"error": "Player not found"}), HTTP_NOT_FOUND
-            if twotruthsandaliegames[gameid].played[playerid]:
-                return jsonify({"error": "Already played"}), HTTP_FORBIDDEN
-            if not twotruthsandaliegames[gameid].submitting:
-                return jsonify({"error": "Submitting phase closed"}), HTTP_FORBIDDEN
-            twotruthsandaliegames[gameid].played[playerid] = True
-            twotruthsandaliegames[gameid].newPlayer(t1, t2, l1, playerid)
-            return jsonify({"good": "Added truth and lies"}), HTTP_OK
-        elif data.get("type") == "refresh":
-            if data.get("gameid") not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            if (
-                data.get("id")
-                not in twotruthsandaliegames[data.get("gameid")].players.keys()
-            ):
-                return jsonify({"error": "Player not found"}), HTTP_NOT_FOUND
-            return jsonify(
-                {
-                    "good": "Fetched phase",
-                    "phase": (
-                        "submitting"
-                        if twotruthsandaliegames[data.get("gameid")].submitting
-                        else ("done" if twotruthsandaliegames[data.get("gameid")].done else ("guessing" + str(len(twotruthsandaliegames[data.get("gameid")].order))))
-                    ),
-                }
-            ), HTTP_OK
-        elif data.get("type") == "get":
-            if data.get("gameid") not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            if (
-                data.get("id")
-                not in twotruthsandaliegames[data.get("gameid")].players.keys()
-            ):
-                return jsonify({"error": "Player not found"}), HTTP_NOT_FOUND
-            if (twotruthsandaliegames[data.get("gameid")].submitting) or twotruthsandaliegames[data.get("gameid")].done:
-                return jsonify({"error": "Not in correct phase"}), HTTP_NOT_ACCEPTABLE
-            tandl = twotruthsandaliegames[data.get("gameid")].tandl
-            order = twotruthsandaliegames[data.get("gameid")].order[0]
-            g0 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[0]]
-            g1 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[1]]
-            g2 = tandl[order][twotruthsandaliegames[data.get("gameid")].rorder[2]]
-            return jsonify({'good': 'Fetched data', 'g0':g0, 'g1': g1, '2g':g2})
-
-    return render_template("/truthandlie/join.html")
-
-
 class truthAndLie:
-    players: "dict[str, str]" = {}
-    played: "dict[str, bool]" = {}
-    tandl: "dict[str, tuple[str, str, str]]" = {}
-    score: "dict[str, int]" = {}
-    order: "list[str]"= []
-    rorder: "list[int]" = [0, 1, 2]
-    liepos: "int" = 0
-    host: "str" = ""
-    submitting = True
-    done = False
-    currtime = datetime.now()
+    def __init__(self):
+        self.players = {}
+        self.played = {}
+        self.tandl = {}
+        self.score = {}
+        self.order = []
+        self.rorder = [0, 1, 2]
+        self.liepos = 0
+        self.host = ""
+        self.submitting = True
+        self.done = False
+        self.currtime = datetime.now()
 
-    def newPlayer(self, t1: str, t2: str, l1: str, id: str):
-        self.tandl[id] = (t1, t2, l1)
-    
-    def finishSubmit(self):
+    def add_player(self, playerid, username):
+        self.players[playerid] = username
+        self.played[playerid] = False
+        self.score[playerid] = 0
+
+    def player_exists(self, playerid):
+        return playerid in self.players
+
+    def player_has_played(self, playerid):
+        return self.played.get(playerid, False)
+
+    def is_submitting_phase(self):
+        return self.submitting
+
+    def add_truths_and_lie(self, playerid, t1, t2, l1):
+        self.played[playerid] = True
+        self.tandl[playerid] = (t1, t2, l1)
+
+    def get_phase(self):
+        if self.submitting:
+            return "submitting"
+        elif self.done:
+            return "done"
+        else:
+            return "guessing" + str(len(self.order))
+
+    def can_fetch_data(self):
+        return not (self.submitting or self.done)
+
+    def get_player_data(self):
+        order = self.order[0]
+        g0 = self.tandl[order][self.rorder[0]]
+        g1 = self.tandl[order][self.rorder[1]]
+        g2 = self.tandl[order][self.rorder[2]]
+        return g0, g1, g2
+
+    def finish_submit(self):
         self.submitting = False
-        self.order = [i for i in self.players.keys()]
+        self.order = list(self.players.keys())
         random.shuffle(self.order)
-    def curr(self):
-        return self.order[0]
+
     def next(self):
         if len(self.order) <= 1:
             return False
-        self.order = self.order[1:]
+        self.order.pop(0)
         random.shuffle(self.order)
-        if self.order[0] == 0:
-            self.liepos = 0
-        elif self.order[1] == 0:
-            self.liepos = 1
-        elif self.order[2] == 0:
-            self.liepos = 2
+        self.liepos = self.rorder.index(0)
         return True
 
+@socketio.on('join')
+def handle_join(data):
+    gameid = data.get('gameid')
+    username = data.get('username')
+    game = twotruthsandaliegames.get(gameid)
 
-@app.route("/twotruthsandalie/host", methods=["GET", "POST"])
-def pageHostTruthLies():
-    if request.method == "GET":
-        return render_template("/truthandlie/host.html")
-    elif request.method == "POST":
-        data = request.json
-        if data.get("type") == "newid":
-            id = randString(10)
-            yourid = randString(16)
-            log(f"New game started with id: [{id}] from player id [{yourid}]")
-            twotruthsandaliegames[id] = truthAndLie()
-            twotruthsandaliegames[id].host = yourid
-            return jsonify({"id": id, "yourid": yourid}), HTTP_CREATED
-        elif data.get("type") == "refresh":
-            gameid = data.get("gameid")
-            if gameid not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            playerid = data.get("playerid")
-            if not playerid == twotruthsandaliegames[gameid].host:
-                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
-            res: "list[list[str, bool]]" = []
-            for i in twotruthsandaliegames[gameid].players.keys():
-                res.append(
-                    [
-                        twotruthsandaliegames[gameid].players[i],
-                        twotruthsandaliegames[gameid].played[i],
-                        twotruthsandaliegames[gameid].score[i],
-                    ]
-                )
-            return jsonify({"players": res}), HTTP_OK
-        elif data.get("type") == "finish":
-            gameid = data.get("gameid")
-            if gameid not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            playerid = data.get("playerid")
-            if not playerid == twotruthsandaliegames[gameid].host:
-                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
-            twotruthsandaliegames[gameid].finishSubmit()
-            return jsonify({"good": "Finished submitting"}), HTTP_OK
-        elif data.get("type") == "next":
-            gameid = data.get("gameid")
-            if gameid not in twotruthsandaliegames.keys():
-                return jsonify({"error": "Game not found"}), HTTP_NOT_FOUND
-            playerid = data.get("playerid")
-            if not playerid == twotruthsandaliegames[gameid].host:
-                return jsonify({"error": "Player is not host"}), HTTP_FORBIDDEN
-            if twotruthsandaliegames[gameid].next():
-                return jsonify({"good" : "Moved to next random player"}), HTTP_OK
-            else:
-                # TODO: Move to finished
-                return jsonify({"good": "No more players"}), HTTP_OK
+    if not game:
+        emit('error', {'error': 'Game not found'})
+        return
 
+    playerid = randString(32)
+    game.add_player(playerid, username)
+    emit('joined', {'userid': playerid})
+
+@socketio.on('play')
+def handle_play(data):
+    gameid = data.get('gameid')
+    playerid = data.get('id')
+    game = twotruthsandaliegames.get(gameid)
+
+    if not game or not game.player_exists(playerid):
+        emit('error', {'error': 'Game or player not found'})
+        return
+
+    if game.player_has_played(playerid):
+        emit('error', {'error': 'Already played'})
+        return
+
+    if not game.is_submitting_phase():
+        emit('error', {'error': 'Submitting phase closed'})
+        return
+
+    t1, t2, l1 = data.get('t1'), data.get('t2'), data.get('l1')
+    game.add_truths_and_lie(playerid, t1, t2, l1)
+    emit('played', {'message': 'Added truth and lies'})
+
+@socketio.on('refresh')
+def handle_refresh(data):
+    gameid = data.get('gameid')
+    playerid = data.get('id')
+    game = twotruthsandaliegames.get(gameid)
+
+    if not game or not game.player_exists(playerid):
+        emit('error', {'error': 'Game or player not found'})
+        return
+
+    phase = game.get_phase()
+    emit('phase', {'phase': phase})
+
+@socketio.on('get')
+def handle_get(data):
+    gameid = data.get('gameid')
+    playerid = data.get('id')
+    game = twotruthsandaliegames.get(gameid)
+
+    if not game or not game.player_exists(playerid):
+        emit('error', {'error': 'Game or player not found'})
+        return
+
+    if not game.can_fetch_data():
+        emit('error', {'error': 'Not in correct phase'})
+        return
+
+    g0, g1, g2 = game.get_player_data()
+    emit('data', {'g0': g0, 'g1': g1, 'g2': g2})
+
+@socketio.on('newid')
+def handle_newid():
+    id = randString(10)
+    yourid = randString(16)
+    log(f"New game started with id: [{id}] from player id [{yourid}]")
+    twotruthsandaliegames[id] = truthAndLie()
+    twotruthsandaliegames[id].host = yourid
+    emit('newid', {'id': id, 'yourid': yourid})
+
+@socketio.on('finish')
+def handle_finish(data):
+    gameid = data.get('gameid')
+    playerid = data.get('playerid')
+    game = twotruthsandaliegames.get(gameid)
+
+    if not game or not playerid == game.host:
+        emit('error', {'error': 'Game not found or player is not host'})
+        return
+
+    game.finish_submit()
+    emit('finished', {'message': 'Finished submitting'})
+
+@socketio.on('next')
+def handle_next(data):
+    gameid = data.get('gameid')
+    playerid = data.get('playerid')
+    game = twotruthsandaliegames.get(gameid)
+
+    if not game or not playerid == game.host:
+        emit('error', {'error': 'Game not found or player is not host'})
+        return
+
+    if game.next():
+        emit('next', {'message': 'Moved to next random player'})
+    else:
+        emit('end', {'message': 'No more players'})
 
 ######################################
 #    ^^^ Two truths and a lie ^^^    #
